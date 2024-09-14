@@ -4,7 +4,7 @@
 */
 
 #include <pwmWrite.h>
-const byte ledPin = 4;
+const byte ledPin = 2;
 int brightness = 0;
 int step = 1;
 Pwm pwm = Pwm();
