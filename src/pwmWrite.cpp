@@ -52,7 +52,7 @@ uint8_t Pwm::attach(int pin) {
       if (mem[c].pin == 255 && ch == 253) {  //first free ch
         mem[c].pin = pin;
         ch = c;
-        ledcAttachChannel(pin, mem[ch].frequency, mem[ch].resolution, ch);
+        mem[ch].attachState = ledcAttachChannel(pin, mem[ch].frequency, mem[ch].resolution, ch);
         if (sync) pause(ch);
         return ch;
       }
@@ -246,15 +246,16 @@ void Pwm::detach(int pin) {
     reset_fields(ch);
     if (digitalRead(pin) == HIGH) delayMicroseconds(mem[ch].servoMaxUs);  // wait until LOW
     ledcWriteChannel(ch, 4);                                              // set minimal duty
-    ledcDetach(mem[ch].pin);                                              // jitterless
-
+    mem[ch].attachState = ledcDetach(mem[ch].pin);                        // jitterless
+    mem[ch].attachState = !mem[ch].attachState;
     //REG_SET_FIELD(GPIO_PIN_MUX_REG[pin], MCU_SEL, GPIO_MODE_DEF_DISABLE);
   }
 }
 
 bool Pwm::detached(int pin) {
-  //if ((REG_GET_FIELD(GPIO_PIN_MUX_REG[pin], MCU_SEL)) == 0) return true;
-  return (ledcDetach(pin) == 1);
+  uint8_t a = attached(pin);
+  if (a == 253) return false;
+  else return true;
 }
 
 void Pwm::pause(int ch) {
